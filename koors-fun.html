@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Koordinatni sustav s funkcijama</title>
+  <style>
+    :root {
+      --border: #444;
+      --bg-panel: #fafafa;
+      --bg-soft: #f3f3f3;
+      --text: #111;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.5;
+      margin: 0;
+      background: #fff;
+      color: var(--text);
+    }
+    main {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    h1, h2, h3 { margin-top: 0; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1rem;
+    }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      background: var(--bg-panel);
+    }
+    .row, .row-3, .row-4 {
+      display: grid;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .row { grid-template-columns: 1fr 1fr; }
+    .row-3 { grid-template-columns: repeat(3, 1fr); }
+    .row-4 { grid-template-columns: repeat(4, 1fr); }
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select,
+    button {
+      width: 100%;
+      font-size: 1rem;
+      padding: 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: #111;
+    }
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    input[readonly] {
+      background: #f8f8f8;
+    }
+    button {
+      cursor: pointer;
+      background: #f0f0f0;
+      font-weight: 700;
+    }
+    button:hover, button:focus, select:focus, input:focus, textarea:focus {
+      background: #e9e9e9;
+      outline: 2px solid #000;
+      outline-offset: 2px;
+    }
+    .button-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .button-row button {
+      width: auto;
+      min-width: 170px;
+    }
+    .help {
+      font-size: 0.96rem;
+      margin-top: 0.25rem;
+    }
+    .status, .report-box, .builder-box {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      background: var(--bg-soft);
+      border: 1px solid #666;
+    }
+    .listbox {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      padding: 0.75rem;
+      min-height: 120px;
+    }
+    .section-spacer { margin-top: 1rem; }
+    .report-box h3 { margin-bottom: 0.4rem; }
+    .report-box p, .report-box ul { margin-top: 0.35rem; }
+    .builder-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    .builder-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+    .builder-actions button {
+      width: auto;
+      min-width: 130px;
+    }
+    .token-list {
+      margin: 0.5rem 0 0;
+      padding-left: 1.25rem;
+    }
+    #printReport {
+      display: none;
+      background: white;
+      color: black;
+      padding: 0;
+    }
+    svg {
+      width: 100%;
+      height: auto;
+      border: 1px solid #333;
+      background: white;
+      border-radius: 8px;
+    }
+    code {
+      background: #efefef;
+      padding: 0.1rem 0.25rem;
+      border-radius: 4px;
+    }
+    @media (max-width: 980px) {
+      .grid, .row, .row-3, .row-4, .builder-grid {
+        grid-template-columns: 1fr;
+      }
+      .button-row button, .builder-actions button {
+        width: 100%;
+      }
+    }
+    @media print {
+      body { background: white; }
+      main > *:not(#printReport) { display: none !important; }
+      #printReport {
+        display: block !important;
+        font-size: 12pt;
+      }
+      #printReport h1, #printReport h2, #printReport h3 {
+        page-break-after: avoid;
+      }
+      #printReport .print-graph-wrap {
+        margin: 1rem 0;
+      }
+      #printReport svg {
+        max-width: 100%;
+        border: 1px solid #000;
+      }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <p><a href="GrafEditor_Izbornik.html">Natrag</a></p>
+  <h1>Graf Editor - Srednja škola</h1>
+  <p class="help">
+    Najprije odredi raspon osi x i y. 
+<br>
+Unesi točke. 
+<br>
+Po potrebi sastavi funkcije pomoću izbornika i gumba.
+<br>
+Nakon prvog crtanja možeš dodavati nove točke bez ponovnog klika na gumb za crtanje jer se graf automatski osvježava.
+<br>
+Gumb za PDF otvara dijalog preglednika za spremanje ispisa kao PDF. 
+<br>
+Gumb za Word stvara Word dokument s grafom i opisom.
+  </p>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="unos-naslov">
+      <h2 id="unos-naslov">Unos podataka</h2>
+
+      <h3>1. Određivanje osi x i y</h3>
+      <div class="row-4">
+        <div>
+          <label for="xMin">X min</label>
+          <input id="xMin" type="number" step="any" value="-10">
+        </div>
+        <div>
+          <label for="xMax">X max</label>
+          <input id="xMax" type="number" step="any" value="10">
+        </div>
+        <div>
+          <label for="yMin">Y min</label>
+          <input id="yMin" type="number" step="any" value="-10">
+        </div>
+        <div>
+          <label for="yMax">Y max</label>
+          <input id="yMax" type="number" step="any" value="10">
+        </div>
+      </div>
+
+      <h3 class="section-spacer">2. Unos točaka</h3>
+      <div class="row">
+        <div>
+          <label for="xInput">Vrijednost x</label>
+          <input id="xInput" type="number" step="any" aria-describedby="unos-uputa">
+        </div>
+        <div>
+          <label for="yInput">Vrijednost y</label>
+          <input id="yInput" type="number" step="any" aria-describedby="unos-uputa">
+        </div>
+      </div>
+
+      <p id="unos-uputa" class="help">
+        Unesi koordinate točke i pritisni gumb Dodaj točku. Nakon što prvi put nacrtaš graf, svaka nova dodana točka
+        automatski će se prikazati na postojećem grafu.
+      </p>
+
+      <div class="button-row">
+        <button id="addPointBtn" type="button">Dodaj točku</button>
+        <button id="clearPointsBtn" type="button">Izbriši sve točke</button>
+      </div>
+
+      <h3 class="section-spacer">3. Sastavljanje funkcija</h3>
+      <div class="builder-box" aria-labelledby="builder-title">
+        <h4 id="builder-title">Graditelj funkcija</h4>
+
+        <label for="currentExpression">Trenutni izraz</label>
+        <input id="currentExpression" type="text" readonly aria-describedby="builder-help">
+
+        <p id="builder-help" class="help">
+          Odaberi dio izraza, zatim pritisni odgovarajući gumb Dodaj. Izraz se slaže dio po dio.
+          Primjer: 2, puta, x, plus, sinus od x. Za bilo koji drugi broj upiši ga u polje Dodatni broj i dodaj ga posebnim gumbom.
+        </p>
+
+        <div class="builder-grid">
+          <div>
+            <label for="valueSelect">Varijable i brzi odabir brojeva</label>
+            <select id="valueSelect">
+              <option value="x">x</option>
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+            <div class="builder-actions">
+              <button id="addValueBtn" type="button">Dodaj vrijednost</button>
+            </div>
+          </div>
+
+<div class="row">
+          <div>
+            <label for="customNumberInput">Dodatni broj (bilo koji broj, npr. -3 ili 7.5)</label>
+            <input id="customNumberInput" type="number" step="any" placeholder="npr. -3, 7.5 ili 12">
+            <div class="builder-actions">
+              <button id="addCustomNumberBtn" type="button">Dodaj upisani broj</button>
+            </div>
+          </div>
+
+          <div>
+            <label for="operatorSelect">Operacije</label>
+            <select id="operatorSelect">
+              <option value="+">plus</option>
+              <option value="-">minus</option>
+              <option value="*">puta</option>
+              <option value="/">podijeljeno</option>
+              <option value="**">na potenciju</option>
+            </select>
+            <div class="builder-actions">
+              <button id="addOperatorBtn" type="button">Dodaj operaciju</button>
+            </div>
+          </div>
+
+          <div>
+            <label for="functionSelect">Funkcije</label>
+            <select id="functionSelect">
+              <option value="x">identiteta x</option>
+              <option value="x**2">x na kvadrat</option>
+              <option value="x**3">x na treću</option>
+              <option value="(x-2)**2">parabola pomaknuta udesno</option>
+              <option value="(x+1)**2-3">parabola pomaknuta lijevo i dolje</option>
+              <option value="1/x">recipročna funkcija 1 kroz x</option>
+              <option value="1/(x*x)">1 kroz x na kvadrat</option>
+              <option value="Math.sin(x)">sinus od x</option>
+              <option value="Math.cos(x)">kosinus od x</option>
+              <option value="Math.tan(x)">tangens od x</option>
+              <option value="Math.sin(2*x)">sinus od 2 puta x</option>
+              <option value="Math.cos(2*x)">kosinus od 2 puta x</option>
+              <option value="Math.sin(x)+Math.cos(x)">sinus x plus kosinus x</option>
+              <option value="Math.sqrt(x)">korijen iz x</option>
+              <option value="Math.log(x)">prirodni logaritam od x</option>
+              <option value="Math.log10(x)">dekadski logaritam od x</option>
+              <option value="Math.exp(x)">e na x</option>
+              <option value="Math.exp(-x)">e na minus x</option>
+              <option value="2**x">2 na x</option>
+              <option value="Math.abs(x)">apsolutna vrijednost od x</option>
+              <option value="Math.abs(x-2)">apsolutna vrijednost od x minus 2</option>
+              <option value="Math.abs(x)+1">apsolutna vrijednost od x plus 1</option>
+            </select>
+            <div class="builder-actions">
+              <button id="addFunctionTokenBtn" type="button">Dodaj funkciju</button>
+            </div>
+          </div>
+        </div>
+
+        
+
+          <div>
+            <label>Zagrade i uređivanje</label>
+            <div class="builder-actions">
+              <button id="addOpenBracketBtn" type="button">Dodaj otvorenu zagradu</button>
+              <button id="addCloseBracketBtn" type="button">Dodaj zatvorenu zagradu</button>
+              <button id="removeLastTokenBtn" type="button">Obriši zadnji dio</button>
+              <button id="clearCurrentExprBtn" type="button">Obriši trenutni izraz</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button id="appendFunctionBtn" type="button">Dodaj funkciju u popis</button>
+          <button id="clearFunctionsBtn" type="button">Obriši sve funkcije</button>
+        </div>
+
+        <label for="functionInput">Popis funkcija, jedna po retku</label>
+        <textarea id="functionInput" placeholder="Ovdje će se pojaviti dodane funkcije."></textarea>
+
+        <p class="help">
+          Primjeri valjanih izraza: <code>x*x</code>, <code>2*x+1</code>, <code>Math.sin(x)</code>,
+          <code>Math.cos(x)</code>, <code>Math.exp(x)</code>, <code>x**2</code>, <code>1/x</code>, <code>2**x</code>, <code>Math.log10(x)</code>, <code>Math.abs(x)</code>.
+        </p>
+
+        <div>
+          <strong>Trenutni dijelovi izraza:</strong>
+          <div id="expressionPartsList">Trenutačno nema dijelova izraza.</div>
+        </div>
+      </div>
+
+      <h3 class="section-spacer">Prikaz</h3>
+      <div>
+        <label>
+          <input id="connectPoints" type="checkbox"> Spoji točke linijom
+        </label>
+      </div>
+
+      <div class="button-row">
+        <button id="drawBtn" type="button">Nacrtaj graf</button>
+        <button id="pdfBtn" type="button">Ispiši ili spremi (Microsoft Print to PDF)</button>
+        <button id="wordBtn" type="button">Spremi Word dokument</button>
+        <button id="resetAllBtn" type="button">Resetiraj sve</button>
+      </div>
+
+      <div id="status" class="status" role="status" aria-live="polite">
+        Nema unesenih točaka ni funkcija.
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="pregled-naslov">
+      <h2 id="pregled-naslov">Pregled unesenih točaka</h2>
+      <div class="listbox" id="pointList" tabindex="0" aria-label="Popis unesenih točaka">
+        Još nema točaka.
+      </div>
+
+      <h2 class="section-spacer">Pregled unesenih funkcija</h2>
+      <div class="listbox" id="functionList" tabindex="0" aria-label="Popis unesenih funkcija">
+        Još nema funkcija.
+      </div>
+
+      <h2 class="section-spacer">Prikaz grafa</h2>
+      <p class="help">
+      Slika prikazuje osi x i y te njihove oznake.</p>
+
+      <svg id="graph" viewBox="0 0 900 560" role="img" aria-labelledby="graphTitle graphDesc">
+        <title id="graphTitle">Grafički prikaz koordinatnog sustava</title>
+        <desc id="graphDesc">Prazan koordinatni sustav bez unesenih podataka.</desc>
+      </svg>
+
+      <div id="analysisBox" class="report-box" aria-live="polite">
+        <h3>Opis nacrtanog grafa</h3>
+        <div id="analysisText">Još nema opisa jer graf nije nacrtan.</div>
+      </div>
+    </section>
+  </div>
+
+  <section id="printReport" aria-label="Izvještaj za ispis u PDF">
+    <h1>Izvještaj o nacrtanom grafu</h1>
+    <p id="printSummary"></p>
+    <div class="print-graph-wrap" id="printGraphWrap"></div>
+    <h2>Opis slike</h2>
+    <div id="printAnalysis"></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const points = [];
+  let expressionParts = [];
+  let lastAnalysisHTML = '';
+  let lastSummaryText = '';
+  let hasDrawnOnce = false;
+
+  const graph = document.getElementById('graph');
+  const pointList = document.getElementById('pointList');
+  const functionList = document.getElementById('functionList');
+  const status = document.getElementById('status');
+  const analysisText = document.getElementById('analysisText');
+  const printSummary = document.getElementById('printSummary');
+  const printAnalysis = document.getElementById('printAnalysis');
+  const printGraphWrap = document.getElementById('printGraphWrap');
+
+  const xInput = document.getElementById('xInput');
+  const yInput = document.getElementById('yInput');
+  const functionInput = document.getElementById('functionInput');
+  const xMinInput = document.getElementById('xMin');
+  const xMaxInput = document.getElementById('xMax');
+  const yMinInput = document.getElementById('yMin');
+  const yMaxInput = document.getElementById('yMax');
+  const connectPoints = document.getElementById('connectPoints');
+
+  const currentExpression = document.getElementById('currentExpression');
+  const expressionPartsList = document.getElementById('expressionPartsList');
+  const valueSelect = document.getElementById('valueSelect');
+  const operatorSelect = document.getElementById('operatorSelect');
+  const functionSelect = document.getElementById('functionSelect');
+  const customNumberInput = document.getElementById('customNumberInput');
+
+  document.getElementById('addPointBtn').addEventListener('click', addPoint);
+  document.getElementById('clearPointsBtn').addEventListener('click', clearPoints);
+  document.getElementById('drawBtn').addEventListener('click', drawGraph);
+  document.getElementById('pdfBtn').addEventListener('click', generatePDF);
+  document.getElementById('wordBtn').addEventListener('click', exportWordDocument);
+  document.getElementById('resetAllBtn').addEventListener('click', resetAll);
+
+  document.getElementById('addValueBtn').addEventListener('click', () => addToken(valueSelect.value));
+  document.getElementById('addOperatorBtn').addEventListener('click', () => addToken(operatorSelect.value));
+  document.getElementById('addFunctionTokenBtn').addEventListener('click', () => addToken(functionSelect.value));
+  document.getElementById('addCustomNumberBtn').addEventListener('click', addCustomNumber);
+  document.getElementById('addOpenBracketBtn').addEventListener('click', () => addToken('('));
+  document.getElementById('addCloseBracketBtn').addEventListener('click', () => addToken(')'));
+  document.getElementById('removeLastTokenBtn').addEventListener('click', removeLastToken);
+  document.getElementById('clearCurrentExprBtn').addEventListener('click', clearCurrentExpression);
+  document.getElementById('appendFunctionBtn').addEventListener('click', appendFunctionToList);
+  document.getElementById('clearFunctionsBtn').addEventListener('click', clearFunctions);
+
+  yInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addPoint();
+  });
+
+  customNumberInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addCustomNumber();
+  });
+
+  functionInput.addEventListener('input', () => {
+    updateFunctionList();
+    if (hasDrawnOnce) drawGraph(false);
+  });
+
+  function escapeHTML(text) {
+    return String(text)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
+  }
+
+  function setStatus(message) {
+    status.textContent = message;
+  }
+
+  function parseRangeValue(input) {
+    return Number(input.value);
+  }
+
+  function validRanges() {
+    const xMin = parseRangeValue(xMinInput);
+    const xMax = parseRangeValue(xMaxInput);
+    const yMin = parseRangeValue(yMinInput);
+    const yMax = parseRangeValue(yMaxInput);
+
+    if (![xMin, xMax, yMin, yMax].every(Number.isFinite)) {
+      setStatus('Raspon osi nije ispravno unesen.');
+      return null;
+    }
+    if (xMin >= xMax || yMin >= yMax) {
+      setStatus('Minimalna vrijednost mora biti manja od maksimalne na obje osi.');
+      return null;
+    }
+    return { xMin, xMax, yMin, yMax };
+  }
+
+  function formatNum(value) {
+    if (!Number.isFinite(value)) return String(value);
+    return Number(value.toFixed(4)).toString();
+  }
+
+  function getFunctions() {
+    return functionInput.value
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  function updateFunctionList() {
+    const functions = getFunctions();
+    if (!functions.length) {
+      functionList.textContent = 'Još nema funkcija.';
+      return;
+    }
+
+    const ul = document.createElement('ul');
+    functions.forEach((expr, i) => {
+      const li = document.createElement('li');
+      li.innerHTML = `Funkcija ${i + 1}: <code>${escapeHTML(expr)}</code>`;
+      ul.appendChild(li);
+    });
+    functionList.innerHTML = '';
+    functionList.appendChild(ul);
+  }
+
+  function addPoint() {
+    const x = Number(xInput.value);
+    const y = Number(yInput.value);
+
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      setStatus('Upiši ispravne brojeve za x i y.');
+      return;
+    }
+
+    points.push({ x, y });
+    updatePointList();
+    setStatus(`Dodana je točka (${x}, ${y}). Ukupno točaka: ${points.length}.`);
+    xInput.value = '';
+    yInput.value = '';
+
+    if (hasDrawnOnce) {
+      drawGraph(false);
+      setStatus(`Dodana je točka (${x}, ${y}) i graf je automatski osvježen. Ukupno točaka: ${points.length}.`);
+    }
+
+    xInput.focus();
+  }
+
+  function clearPoints() {
+    points.length = 0;
+    updatePointList();
+    analysisText.innerHTML = 'Sve točke su obrisane.';
+    setStatus('Sve točke su obrisane.');
+    if (hasDrawnOnce) drawGraph(false);
+  }
+
+  function clearFunctions() {
+    functionInput.value = '';
+    updateFunctionList();
+    if (hasDrawnOnce) drawGraph(false);
+    setStatus('Sve funkcije su obrisane.');
+  }
+
+  function resetAll() {
+    points.length = 0;
+    expressionParts = [];
+    xInput.value = '';
+    yInput.value = '';
+    functionInput.value = '';
+    currentExpression.value = '';
+    customNumberInput.value = '';
+    xMinInput.value = -10;
+    xMaxInput.value = 10;
+    yMinInput.value = -10;
+    yMaxInput.value = 10;
+    connectPoints.checked = false;
+    hasDrawnOnce = false;
+
+    updatePointList();
+    updateFunctionList();
+    updateExpressionPreview();
+    analysisText.innerHTML = 'Sve je resetirano.';
+    setStatus('Sve je resetirano.');
+    drawGraph(false);
+    xInput.focus();
+  }
+
+  function updatePointList() {
+    if (!points.length) {
+      pointList.textContent = 'Još nema točaka.';
+      return;
+    }
+
+    const ul = document.createElement('ul');
+    points.forEach((p, i) => {
+      const li = document.createElement('li');
+      li.textContent = `Točka ${i + 1}: (${formatNum(p.x)}, ${formatNum(p.y)})`;
+      ul.appendChild(li);
+    });
+    pointList.innerHTML = '';
+    pointList.appendChild(ul);
+  }
+
+  function addToken(token) {
+    expressionParts.push(token);
+    updateExpressionPreview();
+    setStatus(`Dodan je dio izraza: ${token}.`);
+  }
+
+  function addCustomNumber() {
+    const value = customNumberInput.value.trim();
+    if (!value) {
+      setStatus('Upiši broj koji želiš dodati u izraz.');
+      return;
+    }
+    if (!Number.isFinite(Number(value))) {
+      setStatus('Upisani dodatni broj nije valjan.');
+      return;
+    }
+    expressionParts.push(value);
+    customNumberInput.value = '';
+    updateExpressionPreview();
+    setStatus(`Dodan je broj ${value} u izraz.`);
+  }
+
+  function removeLastToken() {
+    if (!expressionParts.length) {
+      setStatus('Trenutni izraz je već prazan.');
+      return;
+    }
+    const removed = expressionParts.pop();
+    updateExpressionPreview();
+    setStatus(`Obrisan je zadnji dio izraza: ${removed}.`);
+  }
+
+  function clearCurrentExpression() {
+    expressionParts = [];
+    updateExpressionPreview();
+    setStatus('Trenutni izraz je obrisan.');
+  }
+
+  function updateExpressionPreview() {
+    currentExpression.value = expressionParts.join(' ');
+    if (!expressionParts.length) {
+      expressionPartsList.textContent = 'Trenutačno nema dijelova izraza.';
+      return;
+    }
+    const ol = document.createElement('ol');
+    ol.className = 'token-list';
+    expressionParts.forEach((part, i) => {
+      const li = document.createElement('li');
+      li.textContent = `Dio ${i + 1}: ${part}`;
+      ol.appendChild(li);
+    });
+    expressionPartsList.innerHTML = '';
+    expressionPartsList.appendChild(ol);
+  }
+
+  function appendFunctionToList() {
+    const expr = expressionParts.join(' ').trim();
+    if (!expr) {
+      setStatus('Najprije sastavi funkciju pa je zatim dodaj u popis.');
+      return;
+    }
+    functionInput.value += (functionInput.value.trim() ? '\n' : '') + expr;
+    expressionParts = [];
+    updateExpressionPreview();
+    updateFunctionList();
+    setStatus(`Dodana je funkcija: ${expr}.`);
+    if (hasDrawnOnce) drawGraph(false);
+  }
+
+  function sx(x, ranges, width, padding) {
+    return padding + ((x - ranges.xMin) / (ranges.xMax - ranges.xMin)) * (width - 2 * padding);
+  }
+
+  function sy(y, ranges, height, padding) {
+    return height - padding - ((y - ranges.yMin) / (ranges.yMax - ranges.yMin)) * (height - 2 * padding);
+  }
+
+  function el(name, attrs = {}) {
+    const node = document.createElementNS('http://www.w3.org/2000/svg', name);
+    for (const [k, v] of Object.entries(attrs)) {
+      node.setAttribute(k, String(v));
+    }
+    return node;
+  }
+
+  function quadrantOfPoint(p) {
+    if (p.x === 0 && p.y === 0) return 'u ishodištu';
+    if (p.x === 0) return 'na osi y';
+    if (p.y === 0) return 'na osi x';
+    if (p.x > 0 && p.y > 0) return 'u prvom kvadrantu';
+    if (p.x < 0 && p.y > 0) return 'u drugom kvadrantu';
+    if (p.x < 0 && p.y < 0) return 'u trećem kvadrantu';
+    if (p.x > 0 && p.y < 0) return 'u četvrtom kvadrantu';
+    return 'u neodređenom položaju';
+  }
+
+  function describeFunctionInWords(expr) {
+    return expr
+      .replaceAll('Math.sin', 'sinus')
+      .replaceAll('Math.cos', 'kosinus')
+      .replaceAll('Math.tan', 'tangens')
+      .replaceAll('Math.sqrt', 'korijen')
+      .replaceAll('Math.log10', 'dekadski logaritam')
+      .replaceAll('Math.log', 'prirodni logaritam')
+      .replaceAll('Math.exp', 'eksponencijalna funkcija')
+      .replaceAll('Math.abs', 'apsolutna vrijednost')
+      .replaceAll('Math.PI', 'pi')
+      .replaceAll('2**x', '2 na x')
+      .replaceAll('**', ' na potenciju ')
+      .replaceAll('*', ' puta ')
+      .replaceAll('/', ' podijeljeno s ')
+      .replaceAll('+', ' plus ')
+      .replaceAll('-', ' minus ')
+      .replaceAll('(', ' otvorena zagrada ')
+      .replaceAll(')', ' zatvorena zagrada ')
+      .replaceAll(/\s+/g, ' ')
+      .trim();
+  }
+
+  function evaluateExpr(expr, x) {
+    try {
+      const y = Function('x', `return ${expr};`)(x);
+      return Number.isFinite(y) ? y : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function findZeros(expr, ranges) {
+    const zeros = [];
+    let previousX = null;
+    let previousY = null;
+    const step = (ranges.xMax - ranges.xMin) / 400;
+
+    for (let x = ranges.xMin; x <= ranges.xMax; x += step) {
+      const y = evaluateExpr(expr, x);
+      if (y === null) {
+        previousX = null;
+        previousY = null;
+        continue;
+      }
+
+      if (Math.abs(y) < 0.02) {
+        zeros.push(x);
+      } else if (previousY !== null && previousY * y < 0) {
+        zeros.push((previousX + x) / 2);
+      }
+
+      previousX = x;
+      previousY = y;
+    }
+
+    const unique = [];
+    zeros.sort((a, b) => a - b).forEach(value => {
+      if (!unique.length || Math.abs(unique[unique.length - 1] - value) > 0.25) {
+        unique.push(value);
+      }
+    });
+    return unique.slice(0, 12);
+  }
+
+  function analyzeMonotonicity(expr, ranges) {
+    let increases = 0;
+    let decreases = 0;
+    let previousY = null;
+    const step = (ranges.xMax - ranges.xMin) / 120;
+
+    for (let x = ranges.xMin; x <= ranges.xMax; x += step) {
+      const y = evaluateExpr(expr, x);
+      if (y === null) {
+        previousY = null;
+        continue;
+      }
+      if (previousY !== null) {
+        const diff = y - previousY;
+        if (diff > 0.001) increases++;
+        else if (diff < -0.001) decreases++;
+      }
+      previousY = y;
+    }
+
+    if (increases && !decreases) return 'pretežno rastuća';
+    if (decreases && !increases) return 'pretežno padajuća';
+    if (!increases && !decreases) return 'približno konstantna';
+    return 'na zadanom intervalu ima i rast i pad';
+  }
+
+  function describeSpecialProperties(expr) {
+    const props = [];
+    if (/1\s*\/\s*x(?!\s*\*)/.test(expr) || expr.includes('1/(x*x)')) {
+      props.push('ima vertikalnu asimptotu u x = 0');
+    }
+    if (expr.includes('Math.log(') || expr.includes('Math.log10(') || expr.includes('Math.sqrt(')) {
+      props.push('definirana je samo za dio realnih brojeva, pa se ne crta na cijeloj osi x');
+    }
+    if (expr.includes('Math.tan(')) {
+      props.push('može imati prekide i vrlo velike vrijednosti u blizini pojedinih točaka');
+    }
+    if (expr.includes('Math.abs(')) {
+      props.push('graf sadrži lom u vrhu apsolutne vrijednosti');
+    }
+    return props;
+  }
+
+  function buildAnalysisHTML(ranges, functionLines) {
+    const parts = [];
+
+    parts.push(`<p><strong>Raspon koordinatnog sustava:</strong> x od ${formatNum(ranges.xMin)} do ${formatNum(ranges.xMax)}, y od ${formatNum(ranges.yMin)} do ${formatNum(ranges.yMax)}.</p>`);
+    
+    if (!points.length && !functionLines.length) {
+      parts.push('<p>Trenutno je prikazan prazan koordinatni sustav bez točaka i bez funkcija.</p>');
+      return parts.join('');
+    }
+
+    if (points.length) {
+      const pointItems = points.map((p, i) =>
+        `<li>Točka ${i + 1} ima koordinate (${formatNum(p.x)}, ${formatNum(p.y)}) i nalazi se ${quadrantOfPoint(p)}.</li>`
+      ).join('');
+      parts.push(`<h3>Točke</h3><ul>${pointItems}</ul>`);
+
+      const xs = points.map(p => p.x);
+      const ys = points.map(p => p.y);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+
+      parts.push(`<p><strong>Ekstremne vrijednosti točaka:</strong> najmanji x je ${formatNum(minX)}, najveći x je ${formatNum(maxX)}, najmanji y je ${formatNum(minY)}, najveći y je ${formatNum(maxY)}.</p>`);
+
+      if (connectPoints.checked && points.length > 1) {
+        parts.push(`<p><strong>Spoj točaka:</strong> točke su povezane redoslijedom unosa, od točke 1 do točke ${points.length}.</p>`);
+      } else if (points.length > 1) {
+        parts.push('<p><strong>Spoj točaka:</strong> točke nisu povezane linijom, nego su prikazane pojedinačno.</p>');
+      }
+    }
+
+    if (functionLines.length) {
+      const functionItems = functionLines.map((expr, i) => {
+        const zeros = findZeros(expr, ranges);
+        const y0 = evaluateExpr(expr, 0);
+        const trend = analyzeMonotonicity(expr, ranges);
+        const properties = describeSpecialProperties(expr);
+
+        const details = [];
+        details.push(`Opis riječima: ${escapeHTML(describeFunctionInWords(expr))}.`);
+        if (zeros.length) {
+          details.push(`Približne nule funkcije: ${zeros.map(z => formatNum(z)).join(', ')}.`);
+        } else {
+          details.push('U zadanom rasponu nisu uočene nule funkcije.');
+        }
+        if (y0 !== null) {
+          details.push(`Presjek s osi y je u točki (0, ${formatNum(y0)}).`);
+        } else {
+          details.push('Funkcija nema definiran presjek s osi y.');
+        }
+        details.push(`Monotonost: funkcija je ${trend}.`);
+        if (properties.length) {
+          details.push(`Posebna svojstva: ${properties.join('; ')}.`);
+        }
+
+        return `<li><strong>Funkcija ${i + 1}:</strong> zapis <code>${escapeHTML(expr)}</code>. ${details.join(' ')}</li>`;
+      }).join('');
+      parts.push(`<h3>Funkcije</h3><ul>${functionItems}</ul>`);
+      parts.push('<p>Funkcije su ucrtane u zadanom rasponu osi. Ako neka funkcija na dijelu raspona nije definirana ili daje beskonačne vrijednosti, taj se dio ne crta.</p>');
+    }
+
+    return parts.join('');
+  }
+
+  function updateAccessibilityDescription(ranges, functionLines) {
+    let title = graph.querySelector('title');
+    let desc = graph.querySelector('desc');
+
+    if (!title) {
+      title = el('title');
+      title.id = 'graphTitle';
+      graph.appendChild(title);
+    }
+    if (!desc) {
+      desc = el('desc');
+      desc.id = 'graphDesc';
+      graph.appendChild(desc);
+    }
+
+    title.textContent = 'Grafički prikaz koordinatnog sustava';
+
+    const pointDescriptions = points.length
+      ? points.map((p, i) => `točka ${i + 1} je (${formatNum(p.x)}, ${formatNum(p.y)})`).join('; ')
+      : 'nema unesenih točaka';
+
+    const functionDescriptions = functionLines.length
+      ? functionLines.map((f, i) => `funkcija ${i + 1} glasi ${describeFunctionInWords(f)}`).join('; ')
+      : 'nema unesenih funkcija';
+
+    desc.textContent =
+      `Raspon osi x od ${formatNum(ranges.xMin)} do ${formatNum(ranges.xMax)}, raspon osi y od ${formatNum(ranges.yMin)} do ${formatNum(ranges.yMax)}. ` + `Točke: ${pointDescriptions}. ` +
+      `${connectPoints.checked && points.length > 1 ? 'Točke su spojene linijom. ' : 'Točke nisu spojene linijom. '}` +
+      `Funkcije: ${functionDescriptions}.`;
+  }
+
+  function drawGraph(updateStatus = true) {
+    const ranges = validRanges();
+    if (!ranges) return;
+
+    const functionLines = getFunctions();
+    const width = 900;
+    const height = 560;
+    const padding = 55;
+
+    graph.innerHTML = '';
+    graph.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    graph.setAttribute('aria-labelledby', 'graphTitle graphDesc');
+    graph.appendChild(el('rect', { x: 0, y: 0, width, height, fill: 'white' }));
+
+    for (let i = Math.ceil(ranges.xMin); i <= Math.floor(ranges.xMax); i++) {
+      const x = sx(i, ranges, width, padding);
+      graph.appendChild(el('line', {
+        x1: x, y1: padding, x2: x, y2: height - padding,
+        stroke: '#ddd', 'stroke-width': 1
+      }));
+    }
+    for (let i = Math.ceil(ranges.yMin); i <= Math.floor(ranges.yMax); i++) {
+      const y = sy(i, ranges, height, padding);
+      graph.appendChild(el('line', {
+        x1: padding, y1: y, x2: width - padding, y2: y,
+        stroke: '#ddd', 'stroke-width': 1
+      }));
+    }
+
+    if (ranges.xMin <= 0 && ranges.xMax >= 0) {
+      const x0 = sx(0, ranges, width, padding);
+      graph.appendChild(el('line', {
+        x1: x0, y1: padding, x2: x0, y2: height - padding,
+        stroke: 'black', 'stroke-width': 2
+      }));
+    }
+    if (ranges.yMin <= 0 && ranges.yMax >= 0) {
+      const y0 = sy(0, ranges, height, padding);
+      graph.appendChild(el('line', {
+        x1: padding, y1: y0, x2: width - padding, y2: y0,
+        stroke: 'black', 'stroke-width': 2
+      }));
+    }
+
+    for (let i = Math.ceil(ranges.xMin); i <= Math.floor(ranges.xMax); i++) {
+      const x = sx(i, ranges, width, padding);
+      const label = el('text', {
+        x: x + 2,
+        y: height - padding + 20,
+        'font-size': 14
+      });
+      label.textContent = i;
+      graph.appendChild(label);
+    }
+
+    for (let i = Math.ceil(ranges.yMin); i <= Math.floor(ranges.yMax); i++) {
+      const y = sy(i, ranges, height, padding);
+      const label = el('text', {
+        x: 10,
+        y: y - 4,
+        'font-size': 14
+      });
+      label.textContent = i;
+      graph.appendChild(label);
+    }
+
+    const xAxisY = (ranges.yMin <= 0 && ranges.yMax >= 0) ? sy(0, ranges, height, padding) : (height - padding);
+    const yAxisX = (ranges.xMin <= 0 && ranges.xMax >= 0) ? sx(0, ranges, width, padding) : padding;
+
+    const xLabel = el('text', { x: width - padding + 12, y: xAxisY - 8, 'font-size': 16, 'font-weight': '700' });
+    xLabel.textContent = 'x';
+    graph.appendChild(xLabel);
+
+    const yLabel = el('text', { x: yAxisX + 8, y: padding - 12, 'font-size': 16, 'font-weight': '700' });
+    yLabel.textContent = 'y';
+    graph.appendChild(yLabel);
+
+    if (connectPoints.checked && points.length > 1) {
+      const polyPoints = points
+        .map(p => `${sx(p.x, ranges, width, padding)},${sy(p.y, ranges, height, padding)}`)
+        .join(' ');
+      graph.appendChild(el('polyline', {
+        points: polyPoints,
+        fill: 'none',
+        stroke: '#005bbb',
+        'stroke-width': 2.5
+      }));
+    }
+
+    points.forEach((p) => {
+      const cx = sx(p.x, ranges, width, padding);
+      const cy = sy(p.y, ranges, height, padding);
+      graph.appendChild(el('circle', { cx, cy, r: 5.5, fill: '#c62828' }));
+    });
+
+    functionLines.forEach((expr) => {
+      const coords = [];
+      let previousValid = false;
+
+      for (let px = 0; px <= 760; px++) {
+        const x = ranges.xMin + (px / 760) * (ranges.xMax - ranges.xMin);
+        let y;
+
+        try {
+          y = Function('x', `return ${expr};`)(x);
+        } catch (e) {
+          previousValid = false;
+          continue;
+        }
+
+        if (!Number.isFinite(y)) {
+          previousValid = false;
+          continue;
+        }
+
+        const graphX = sx(x, ranges, width, padding);
+        const graphY = sy(y, ranges, height, padding);
+
+        if (graphY < -2500 || graphY > 3200) {
+          previousValid = false;
+          continue;
+        }
+
+        if (!previousValid) coords.push(`M ${graphX} ${graphY}`);
+        else coords.push(`L ${graphX} ${graphY}`);
+        previousValid = true;
+      }
+
+      if (coords.length) {
+        graph.appendChild(el('path', {
+          d: coords.join(' '),
+          fill: 'none',
+          stroke: '#2e7d32',
+          'stroke-width': 2.25
+        }));
+      }
+    });
+
+    updateAccessibilityDescription(ranges, functionLines);
+    lastAnalysisHTML = buildAnalysisHTML(ranges, functionLines);
+    analysisText.innerHTML = lastAnalysisHTML;
+
+    const summaryParts = [];
+    if (points.length) summaryParts.push(`ucrtano točaka: ${points.length}`);
+    if (functionLines.length) summaryParts.push(`ucrtano ${functionLines.length} funkcija`);
+    if (connectPoints.checked && points.length > 1) summaryParts.push('točke su spojene linijom');
+    if (!summaryParts.length) summaryParts.push('prikazan je prazan koordinatni sustav');
+
+    lastSummaryText = `Graf je nacrtan: ${summaryParts.join(', ')}.`;
+    hasDrawnOnce = true;
+    if (updateStatus) setStatus(lastSummaryText);
+  }
+
+
+
+  function svgToPngDataUrl(svgNode) {
+    return new Promise((resolve, reject) => {
+      const clone = svgNode.cloneNode(true);
+      const viewBox = (clone.getAttribute('viewBox') || '0 0 900 560').split(/\s+/).map(Number);
+      const width = Number(clone.getAttribute('width')) || viewBox[2] || 900;
+      const height = Number(clone.getAttribute('height')) || viewBox[3] || 560;
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('width', String(width));
+      clone.setAttribute('height', String(height));
+      const svgText = new XMLSerializer().serializeToString(clone);
+      const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+      const image = new Image();
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(image, 0, 0, width, height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Pretvorba SVG grafa u sliku nije uspjela.'));
+      };
+      image.src = url;
+    });
+  }
+
+  function buildWordDocumentHTML(graphImageDataUrl) {
+    const createdAt = new Date();
+    const safeSummary = escapeHTML(lastSummaryText || 'Graf je pripremljen za izvoz.');
+    const safeAnalysis = lastAnalysisHTML || '<p>Nema dostupnog opisa.</p>';
+    const graphBlock = graphImageDataUrl
+      ? `<p><img src="${graphImageDataUrl}" alt="Grafički prikaz koordinatnog sustava" style="max-width:100%; height:auto; border:1px solid #000;"></p>`
+      : '<p>Graf nije dostupan kao slika u Word dokumentu.</p>';
+
+    return `<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<title>Graf dokument</title>
+<style>
+body { font-family: Arial, sans-serif; line-height: 1.5; color: #111; margin: 24px; }
+h1, h2, h3 { color: #000; }
+p, li { font-size: 12pt; }
+img { display: block; margin: 12px 0; }
+code { font-family: Consolas, monospace; background: #efefef; padding: 1px 3px; }
+.small { font-size: 10pt; color: #333; }
+</style>
+</head>
+<body>
+<h1>Izvještaj o nacrtanom grafu</h1>
+<p><strong>Vrijeme izrade:</strong> ${createdAt.toLocaleString('hr-HR')}</p>
+<p>${safeSummary}</p>
+<h2>Graf</h2>
+${graphBlock}
+<h2>Opis grafa</h2>
+${safeAnalysis}
+<p class="small">Dokument je izrađen iz statične HTML aplikacije Graf Editor 2.2. Word dokument je spremljen u obliku HTML dokumenta koji Microsoft Word i slični programi mogu otvoriti kao .doc datoteku.</p>
+</body>
+</html>`;
+  }
+
+  async function exportWordDocument() {
+    drawGraph(false);
+
+    try {
+      setStatus('Priprema se Word dokument.');
+      const graphImageDataUrl = await svgToPngDataUrl(graph);
+      const docHTML = buildWordDocumentHTML(graphImageDataUrl);
+      const blob = new Blob(['\ufeff', docHTML], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const timestamp = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const fileName = `graf-${timestamp.getFullYear()}-${pad(timestamp.getMonth()+1)}-${pad(timestamp.getDate())}-${pad(timestamp.getHours())}${pad(timestamp.getMinutes())}${pad(timestamp.getSeconds())}.doc`;
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setStatus(`Word dokument je pripremljen za preuzimanje pod nazivom ${fileName}.`);
+    } catch (error) {
+      console.error(error);
+      setStatus('Izrada Word dokumenta nije uspjela u ovom pregledniku. Pokušaj spremanje PDF-a ili drugi preglednik.');
+    }
+  }
+
+  function generatePDF() {
+    drawGraph(false);
+
+    printSummary.textContent = lastSummaryText || 'Graf je pripremljen za ispis u PDF.';
+    printAnalysis.innerHTML = lastAnalysisHTML || '<p>Nema dostupnog opisa.</p>';
+
+    const cloned = graph.cloneNode(true);
+    cloned.removeAttribute('id');
+    printGraphWrap.innerHTML = '';
+    printGraphWrap.appendChild(cloned);
+
+    setStatus('Otvara se dijalog preglednika. Za stvaranje PDF-a odaberi Ispis ili Save as PDF.');
+    window.print();
+  }
+
+  updatePointList();
+  updateFunctionList();
+  updateExpressionPreview();
+  drawGraph(false);
+})();
+</script>
+</body>
+</html>

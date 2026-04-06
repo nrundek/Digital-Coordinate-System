@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Digitalni koordinatni sustav</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #ffffff;
+      color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    main {
+      max-width: 600px;
+      width: 100%;
+      padding: 2rem;
+      text-align: center;
+      border: 1px solid #444;
+      border-radius: 12px;
+      background: #fafafa;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+    }
+
+    p {
+      margin-bottom: 2rem;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    button {
+      font-size: 1.1rem;
+      padding: 1rem;
+      border-radius: 10px;
+      border: 1px solid #333;
+      background: #f0f0f0;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover,
+    button:focus {
+      background: #e0e0e0;
+      outline: 3px solid black;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Digitalni koordinatni sustav</h1>
+<p>Ovo je digitalno pristupačan koordinatni sustav namijenjen učenju, poučavanju i analizi matematičkih sadržaja na način koji je prilagođen i osobama koje koriste asistivnu tehnologiju.</p>
+
+<p>Sustav omogućuje rad u dvije razine – osnovnoj i naprednijoj – pri čemu korisnik može samostalno upravljati svim elementima grafa putem jasno strukturiranog i pristupačnog sučelja.</p>
+<ul>
+U ovoj je verziji koordinatnog sustava moguće:
+<li>definirati raspon koordinatnih osi (x i y)</li>
+      <li>unositi pojedinačne točke zadavanjem njihovih koordinata</li>
+      <li>pregledavati sve unesene točke u strukturiranom popisu</li>
+      <li>prikazati točke na koordinatnom sustavu</li>
+      <li>po potrebi povezivati točke linijom redoslijedom unosa</li>
+      <li>naknadno dodavati nove točke bez ponovnog crtanja cijelog grafa (automatsko osvježavanje)</li>
+      <li>automatski generirati tekstualni opis grafa: položaj točaka, kvadrante u kojima se nalaze, ekstremne vrijednosti, način prikaza</li>
+    </ul>
+  
+  <ul>
+Naprednija verzija sustava dodatno omogućuje:
+<li>sastavljanje matematičkih funkcija pomoću pristupačnog „graditelja izraza“ (korak-po-korak)</li>
+      <li>korištenje različitih matematičkih operacija i funkcija (polinomi, trigonometrijske funkcije, logaritmi, eksponencijalne funkcije i dr.)</li>
+      <li>unos i prikaz više funkcija istovremeno</li>
+      <li>automatsko crtanje funkcija u zadanom rasponu</li>
+      <li>analizu funkcija: približne nule funkcije, presjek s osi y, rast/pad, posebna svojstva (asimptote, lomovi, ograničenja domene)</li>
+    </ul>
+  
+  <ul>Sustav također omogućuje:
+  <li>prikaz grafa u SVG formatu uz opis dostupan čitačima ekrana</li>
+      <li>generiranje izvještaja o grafu</li>
+      <li>izvoz grafa i opisa u PDF (putem ispisa preglednika), Word dokument i sliku grafa (PNG)</li>
+    </ul>
+    <ul>
+Posebna je pažnja posvećena pristupačnosti:
+      <li>logičan redoslijed navigacije tipkovnicom</li>
+      <li>jasne oznake svih elemenata</li>
+      <li>tekstualni opisi grafičkih prikaza</li>
+      <li>strukturirani izvještaji</li>
+    </ul>
+ 
+<p>Ovaj je koordinatni sustav početak pokušaja digitalizacije matematičkih područja koja se obrađuju u školama.</p>
+
+<p>Namijenjen je osobama s oštećenjem vida (slijepima i slabovidnima), ali i osobama s motoričkim poteškoćama koje otežano crtaju.</p>
+
+<p>Sve primjedbe pošaljite na: <a href="mailto:nikola.rundek@gmail.com">nikola.rundek@gmail.com</a></p>    
+
+<h2>Odaberi koordinatni sustav.</h2>
+
+    <div class="button-group">
+      <button onclick="openBasic()">Koordinatni sustav</button>
+      <button onclick="openAdvanced()">Koordinatni sustav s funkcijama</button>
+    </div>
+  </main>
+
+  <script>
+    function openBasic() {
+      window.location.href = "files/koors.html";
+    }
+
+    function openAdvanced() {
+      window.location.href = "files/koors-fun.html";
+    }
+  </script>
+</body>
+</html>
